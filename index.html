@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Password Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #eee;
+      padding: 20px;
+    }
+    #login, #main {
+      max-width: 400px;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #444;
+      border-radius: 10px;
+      background-color: #222;
+    }
+    input, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #4caf50;
+      color: white;
+      cursor: pointer;
+    }
+    .slot {
+      border: 1px solid #555;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div id="login">
+    <h2>Set/Enter Access Code</h2>
+    <input type="password" id="accessCode" placeholder="Access Code" />
+    <button onclick="verifyCode()">Enter</button>
+  </div>
+
+  <div id="main" style="display:none;">
+    <h2>Your Passwords</h2>
+    <div id="slots"></div>
+    <h3>Add New</h3>
+    <input type="text" id="siteName" placeholder="Site Name" />
+    <input type="text" id="sitePassword" placeholder="Password" />
+    <button onclick="addSlot()">Add Slot</button>
+  </div>
+
+  <script>
+    const accessKey = "passwordManagerKey";
+    const storageKey = "passwordManagerData";
+
+    const savedCode = localStorage.getItem(accessKey);
+    if (savedCode) {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("main").style.display = "block";
+      loadSlots();
+    }
+
+    function verifyCode() {
+      const codeInput = document.getElementById("accessCode").value;
+      if (!savedCode) {
+        localStorage.setItem(accessKey, codeInput);
+        alert("Access code set. Remember it or you're screwed.");
+        location.reload();
+      } else {
+        if (codeInput === savedCode) {
+          document.getElementById("login").style.display = "none";
+          document.getElementById("main").style.display = "block";
+          loadSlots();
+        } else {
+          alert("Wrong code. You're screwed.");
+        }
+      }
+    }
+
+    function loadSlots() {
+      const data = JSON.parse(localStorage.getItem(storageKey)) || [];
+      const container = document.getElementById("slots");
+      container.innerHTML = "";
+      data.forEach((entry, index) => {
+        const div = document.createElement("div");
+        div.className = "slot";
+        div.innerHTML = `<strong>${entry.site}</strong><br>Password: ${entry.password}`;
+        container.appendChild(div);
+      });
+    }
+
+    function addSlot() {
+      const site = document.getElementById("siteName").value;
+      const password = document.getElementById("sitePassword").value;
+      if (!site || !password) return alert("Fill both fields.");
+
+      const data = JSON.parse(localStorage.getItem(storageKey)) || [];
+      data.push({ site, password });
+      localStorage.setItem(storageKey, JSON.stringify(data));
+      loadSlots();
+
+      document.getElementById("siteName").value = "";
+      document.getElementById("sitePassword").value = "";
+    }
+  </script>
+</body>
+</html>
